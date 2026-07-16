@@ -534,7 +534,7 @@ print(result["content"])
 
 ```bash
 # 运行日志分析 Agent
-cd agent/src/generic_agent
+cd generic_agent
 python -m examples.log_analysis /var/log/myapp
 ```
 
@@ -602,24 +602,6 @@ python -m examples.log_analysis /var/log/myapp
 | `success` | Agent 生成了最终回答（`content` 非空） |
 | `failed` | 执行出错：LLM 返回空响应、达到最大迭代次数无结果、内容过滤断路器触发 |
 | `cancelled` | 用户调用 `AgentLoop.cancel()` 中断执行 |
-
----
-
-## 与原始交易 Agent 的对比
-
-`generic_agent` 从 `src.agent.loop`（交易 Agent）提取并泛化，以下是关键差异：
-
-| 方面 | 原始 `src.agent.AgentLoop` | 通用 `generic_agent.AgentLoop` |
-|---|---|---|
-| **系统提示词** | 硬编码的金融研究 Agent 提示词 | 通过 `ContextBuilder(system_prompt_template=)` 完全可配置 |
-| **Skill 系统** | 依赖 `SkillsLoader` + 5 个交易技能 | 移除，仅保留工具调用 |
-| **Goal 系统** | `src.goal`：延续性检查、usage accounting | 完全移除 |
-| **数据源统计** | `_count_data_sources()` 引用 backtest 加载器 | 移除 |
-| **成功判定** | `metrics.csv` 存在或 `final_content` 非空 | 仅根据 `final_content` 非空 |
-| **状态检查** | 检查 `artifacts/metrics.csv` | 无交易特定路径依赖 |
-| **ContextBuilder** | 固化的 `_SYSTEM_PROMPT` + `_MEMORY_SECTION` | 可传入任意模板，`_MEMORY_SECTION` 移除 |
-| **`context_builder` 参数** | 无（内部自动创建） | 新增，允许传入预配置实例 |
-| **工具定义** | 相同（`BaseTool` / `ToolRegistry`） | 相同，通过 re-export 共享 |
 
 ---
 
@@ -696,7 +678,7 @@ timer.cancel()
 ## 项目结构
 
 ```
-agent/src/generic_agent/
+generic_agent/
 ├── __init__.py             # 统一导出入口
 ├── context.py              # ContextBuilder — 可配置系统提示词的消息构建器
 ├── loop.py                 # AgentLoop — 核心 ReAct 循环 + LLMClient 基类
@@ -710,6 +692,3 @@ agent/src/generic_agent/
     ├── __init__.py
     └── log_analysis.py     # 日志分析 Agent 完整示例
 ```
-
-不修改 `src.agent` 下的任何原始文件——所有泛化通过新建文件和复导出实现，
-原始交易 Agent 完全不受影响。
