@@ -461,10 +461,10 @@ loop = AgentLoop(..., event_callback=my_callback)
 
 ```python
 import json
-from generic_agent import AgentLoop, ContextBuilder, ToolRegistry
+from generic_agent import (
+    AgentLoop, ContextBuilder, SimpleLLM, ToolRegistry, WorkspaceMemory,
+)
 from generic_agent.tools import BaseTool
-from generic_agent.memory import WorkspaceMemory
-from src.providers.chat import ChatLLM
 
 # 1. 定义工具
 class HelloTool(BaseTool):
@@ -507,7 +507,7 @@ Today is {current_datetime}.
 )
 
 # 4. 创建 AgentLoop 并运行
-llm = ChatLLM()
+llm = SimpleLLM()
 loop = AgentLoop(
     registry=registry,
     llm=llm,
@@ -534,8 +534,8 @@ print(result["content"])
 
 ```bash
 # 运行日志分析 Agent
-cd agent
-python -m generic_agent.examples.log_analysis /var/log/myapp
+cd agent/src/generic_agent
+python -m examples.log_analysis /var/log/myapp
 ```
 
 你可以将此文件作为模板，替换为自己的工具和系统提示词来创建任意领域的 Agent。
@@ -699,11 +699,12 @@ timer.cancel()
 agent/src/generic_agent/
 ├── __init__.py             # 统一导出入口
 ├── context.py              # ContextBuilder — 可配置系统提示词的消息构建器
-├── loop.py                 # AgentLoop — 核心 ReAct 循环
-├── memory.py               # WorkspaceMemory — 运行时状态（从 src.agent re-export）
-├── progress.py             # 心跳/进度事件基础设施（从 src.agent re-export）
-├── tools.py                # BaseTool / ToolRegistry（从 src.agent re-export）
-├── trace.py                # TraceWriter — 崩溃安全追踪（从 src.agent re-export）
+├── loop.py                 # AgentLoop — 核心 ReAct 循环 + LLMClient 基类
+├── memory.py               # WorkspaceMemory — 运行时状态
+├── progress.py             # 心跳/进度事件基础设施
+├── simple_llm.py           # SimpleLLM — OpenAI 兼容 LLM 客户端
+├── tools.py                # BaseTool / ToolRegistry
+├── trace.py                # TraceWriter — 崩溃安全追踪
 ├── README.md               # 本文件
 └── examples/
     ├── __init__.py
